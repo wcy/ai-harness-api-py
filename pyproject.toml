@@ -1,0 +1,27 @@
+[project]
+name = "ai-harness-api"
+version = "0.1.0"
+description = "Unified programmatic interface for Claude, Codex, and Gemini AI CLI agents"
+license = { text = "MIT" }
+keywords = ["ai", "cli", "claude", "codex", "gemini", "llm", "agent", "python"]
+requires-python = ">=3.12"
+dependencies = [
+    "pydantic>=2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+]
+
+[project.scripts]
+aicli = "ai_harness_api.cli.main:main"
+
+[build-system]
+requires = ["uv-build>=0.5"]
+build-backend = "uv_build"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
