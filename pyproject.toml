@@ -1,6 +1,6 @@
 [project]
 name = "ai-harness-api"
-version = "0.1.1"
+version = "0.2.0"
 description = "Unified programmatic interface for Claude, Codex, and Gemini AI CLI agents"
 license = { text = "MIT" }
 keywords = ["ai", "cli", "claude", "codex", "gemini", "llm", "agent", "python"]
