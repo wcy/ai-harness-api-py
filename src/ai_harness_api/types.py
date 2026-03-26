@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, field_validator
@@ -104,6 +105,8 @@ class AiResponseMetadata(BaseModel):
     error_code: str | None = None
     message: str | None = None
     session_id: str | None = None
+    rate_limited: bool = False
+    rate_limit_reset_at: datetime | None = None
 
 
 class AiResponse(BaseModel):

@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import random
+from datetime import datetime, timezone
 
 import pytest
 
-from ai_harness_api.backends.claude import ClaudeClient
+from ai_harness_api.backends.claude import ClaudeClient, RateLimitError
 from ai_harness_api.types import (
     AiChunk,
     AiResponse,
@@ -194,6 +195,65 @@ class TestParseResponse:
         assert resp.metadata is not None
         assert resp.metadata.session_id is None
 
+    def test_rate_limit_am_reset(self):
+        stdout = "You've hit your limit · resets 5am (UTC)"
+        resp = self.client._parse_response(stdout, self.resolved)
+        assert resp.status == 'error'
+        assert resp.content == ''
+        assert resp.metadata is not None
+        assert resp.metadata.backend == 'claude'
+        assert resp.metadata.rate_limited is True
+        assert resp.metadata.message == 'rate_limited'
+        assert resp.metadata.rate_limit_reset_at is not None
+        assert isinstance(resp.metadata.rate_limit_reset_at, datetime)
+        assert resp.metadata.rate_limit_reset_at.tzinfo is not None
+        # Should be 5:01 AM UTC today or tomorrow
+        reset = resp.metadata.rate_limit_reset_at
+        assert reset.hour == 5
+        assert reset.minute == 1
+        assert reset.second == 0
+
+    def test_rate_limit_pm_reset(self):
+        stdout = "You've hit your limit · resets 11pm (UTC)"
+        resp = self.client._parse_response(stdout, self.resolved)
+        assert resp.status == 'error'
+        assert resp.content == ''
+        assert resp.metadata is not None
+        assert resp.metadata.rate_limited is True
+        assert resp.metadata.rate_limit_reset_at is not None
+        reset = resp.metadata.rate_limit_reset_at
+        assert reset.hour == 23
+        assert reset.minute == 1
+
+    def test_rate_limit_past_advances_to_next_day(self):
+        # Use a time that is almost certainly in the past today: 1am
+        # If 1am already passed, it should be tomorrow
+        stdout = "You've hit your limit · resets 1am (UTC)"
+        now_utc = datetime.now(timezone.utc)
+        resp = self.client._parse_response(stdout, self.resolved)
+        assert resp.status == 'error'
+        assert resp.metadata is not None
+        assert resp.metadata.rate_limited is True
+        reset = resp.metadata.rate_limit_reset_at
+        assert reset is not None
+        # reset_dt must be strictly in the future
+        assert reset > now_utc
+
+    def test_rate_limit_unparseable_token(self):
+        stdout = "You've hit your limit · resets sometime soon"
+        resp = self.client._parse_response(stdout, self.resolved)
+        assert resp.status == 'error'
+        assert resp.metadata is not None
+        assert resp.metadata.rate_limited is True
+        assert resp.metadata.rate_limit_reset_at is None
+
+    def test_rate_limit_does_not_fall_through_to_fallback(self):
+        stdout = "You've hit your limit · resets 5am (UTC)"
+        resp = self.client._parse_response(stdout, self.resolved)
+        assert resp.status == 'error'
+        assert resp.metadata is not None
+        assert resp.metadata.fallback is False
+
 
 # ---------------------------------------------------------------------------
 # Codec — _parse_chunk
@@ -239,6 +299,25 @@ class TestParseChunk:
     def test_malformed_json_raises(self):
         with pytest.raises(ValueError, match='Unparseable stream line'):
             self.client._parse_chunk('not json at all')
+
+    def test_rate_limit_plain_text_raises_rate_limit_error(self):
+        line = "You've hit your limit · resets 5am (UTC)"
+        with pytest.raises(RateLimitError) as exc_info:
+            self.client._parse_chunk(line)
+        e = exc_info.value
+        assert isinstance(e, ValueError)
+        assert e.metadata.rate_limited is True
+        assert e.metadata.rate_limit_reset_at is not None
+        assert isinstance(e.metadata.rate_limit_reset_at, datetime)
+
+    def test_rate_limit_unparseable_reset_raises_rate_limit_error(self):
+        line = "You've hit your limit · resets sometime"
+        with pytest.raises(RateLimitError) as exc_info:
+            self.client._parse_chunk(line)
+        e = exc_info.value
+        assert isinstance(e, ValueError)
+        assert e.metadata.rate_limited is True
+        assert e.metadata.rate_limit_reset_at is None
 
 
 # ---------------------------------------------------------------------------
