@@ -94,6 +94,16 @@ class TestFlagParsing:
         assert args.session_id is None
 
     @pytest.mark.parametrize('backend', ['claude', 'codex', 'gemini'])
+    def test_allow_all_tools_flag(self, backend):
+        args = _parse_args([backend, 'prompt', '--allow-all-tools'])
+        assert args.allow_all_tools is True
+
+    @pytest.mark.parametrize('backend', ['claude', 'codex', 'gemini'])
+    def test_allow_all_tools_default_false(self, backend):
+        args = _parse_args([backend, 'prompt'])
+        assert args.allow_all_tools is False
+
+    @pytest.mark.parametrize('backend', ['claude', 'codex', 'gemini'])
     def test_additional_args_not_accepted(self, backend):
         with pytest.raises(SystemExit) as exc:
             _parse_args([backend, 'prompt', '--additional-args=--foo'])
@@ -418,6 +428,7 @@ class TestRunBackend:
             executable_path=None,
             new_session=False,
             session_id=None,
+            allow_all_tools=False,
             output=output,
         )
         defaults.update(kwargs)
@@ -571,6 +582,38 @@ class TestRunBackend:
             _run_backend(args)
 
         assert captured_config['config'].persist_session is True
+
+    def test_allow_all_tools_flag_sets_allow_all_tools(self):
+        """--allow-all-tools → ClientConfig.allow_all_tools == True."""
+        captured_config = {}
+
+        def capture_create(c):
+            captured_config['config'] = c
+            return self._mock_client([])
+
+        args = self._make_args(allow_all_tools=True)
+        with patch.dict('ai_harness_api.cli.backends.BACKENDS', {
+            'claude': {'create': capture_create}
+        }):
+            _run_backend(args)
+
+        assert captured_config['config'].allow_all_tools is True
+
+    def test_allow_all_tools_absent_leaves_false(self):
+        """No --allow-all-tools flag → ClientConfig.allow_all_tools == False."""
+        captured_config = {}
+
+        def capture_create(c):
+            captured_config['config'] = c
+            return self._mock_client([])
+
+        args = self._make_args()
+        with patch.dict('ai_harness_api.cli.backends.BACKENDS', {
+            'claude': {'create': capture_create}
+        }):
+            _run_backend(args)
+
+        assert captured_config['config'].allow_all_tools is False
 
 
 # ---------------------------------------------------------------------------

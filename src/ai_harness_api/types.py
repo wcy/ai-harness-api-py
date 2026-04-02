@@ -16,6 +16,7 @@ class ClientConfig(BaseModel):
     additional_args: list[str] = []
     session_id: str | None = None
     persist_session: bool = False
+    allow_all_tools: bool = False  # Bypass all tool-approval prompts
 
     @field_validator('timeout')
     @classmethod
@@ -49,6 +50,7 @@ class RunOptions(BaseModel):
     additional_args: list[str] = []
     session_id: str | None = None
     persist_session: bool = False
+    allow_all_tools: bool = False  # Bypass all tool-approval prompts for this call only
 
     @field_validator('timeout')
     @classmethod
@@ -84,6 +86,7 @@ class ResolvedOptions(BaseModel):
     additional_args: list[str]
     session_id: str | None
     persist_session: bool
+    allow_all_tools: bool  # True when tool-approval bypass flag should be passed to the CLI
 
 
 class AiUsage(BaseModel):

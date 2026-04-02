@@ -20,6 +20,7 @@ def _make_resolved(
     additional_args: list[str] | None = None,
     session_id: str | None = None,
     persist_session: bool = False,
+    allow_all_tools: bool = False,
 ) -> ResolvedOptions:
     return ResolvedOptions(
         executable=executable,
@@ -29,6 +30,7 @@ def _make_resolved(
         additional_args=additional_args or [],
         session_id=session_id,
         persist_session=persist_session,
+        allow_all_tools=allow_all_tools,
     )
 
 
@@ -89,6 +91,14 @@ class TestBuildArgs:
     def test_resume_omits_cwd_flag(self):
         args = self.client._build_args('hello', _make_resolved(session_id='t-123', cwd='/tmp'))
         assert '-C' not in args
+
+    def test_allow_all_tools_true_includes_full_auto(self):
+        args = self.client._build_args('hello', _make_resolved(allow_all_tools=True))
+        assert '--full-auto' in args
+
+    def test_allow_all_tools_false_excludes_full_auto(self):
+        args = self.client._build_args('hello', _make_resolved(allow_all_tools=False))
+        assert '--full-auto' not in args
 
 
 # ---------------------------------------------------------------------------

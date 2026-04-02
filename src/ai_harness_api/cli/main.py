@@ -18,6 +18,7 @@ def _add_subcommand(subparsers: argparse._SubParsersAction, name: str) -> None:
     sub.add_argument('--executable-path', dest='executable_path', default=None)
     sub.add_argument('--new-session', dest='new_session', action='store_true', default=False)
     sub.add_argument('--session-id', dest='session_id', default=None)
+    sub.add_argument('--allow-all-tools', dest='allow_all_tools', action='store_true', default=False)
     sub.add_argument('--output', dest='output', choices=['json', 'jsonl', 'text'], default='json')
 
 
@@ -152,6 +153,7 @@ def _run_backend(args: argparse.Namespace) -> int:
         executable_path=args.executable_path,
         persist_session=args.new_session or args.session_id is not None,
         session_id=args.session_id,
+        allow_all_tools=args.allow_all_tools,
     )
 
     entry = BACKENDS[args.backend]

@@ -32,6 +32,8 @@ class GeminiClient(AiCliClient):
         args.extend(['--model', options.model])
         if options.session_id is not None:
             args.extend(['--resume', options.session_id])
+        if options.allow_all_tools:
+            args.append('--yolo')
         args.extend(options.additional_args)
         return args
 
@@ -41,6 +43,8 @@ class GeminiClient(AiCliClient):
         args.extend(['--model', options.model])
         if options.session_id is not None:
             args.extend(['--resume', options.session_id])
+        if options.allow_all_tools:
+            args.append('--yolo')
         args.extend(options.additional_args)
         return args
 

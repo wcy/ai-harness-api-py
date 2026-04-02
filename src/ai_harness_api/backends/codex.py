@@ -35,6 +35,8 @@ def _build_codex_args(prompt: str, resolved: ResolvedOptions) -> list[str]:
             args.extend(['-C', resolved.cwd])
         args.extend(['--model', resolved.model])
         args.append(prompt)
+    if resolved.allow_all_tools:
+        args.append('--full-auto')
     args.extend(resolved.additional_args)
     return args
 

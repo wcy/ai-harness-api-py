@@ -25,6 +25,7 @@ def _make_resolved(
     additional_args: list[str] | None = None,
     session_id: str | None = None,
     persist_session: bool = False,
+    allow_all_tools: bool = False,
 ) -> ResolvedOptions:
     return ResolvedOptions(
         executable=executable,
@@ -34,6 +35,7 @@ def _make_resolved(
         additional_args=additional_args or [],
         session_id=session_id,
         persist_session=persist_session,
+        allow_all_tools=allow_all_tools,
     )
 
 
@@ -85,6 +87,14 @@ class TestBuildArgs:
         assert args[5] == '--model'
         assert args[-1] == '--extra'
 
+    def test_allow_all_tools_flag_present_when_true(self):
+        args = self.client._build_args('hello', _make_resolved(allow_all_tools=True))
+        assert '--dangerously-skip-permissions' in args
+
+    def test_allow_all_tools_flag_absent_when_false(self):
+        args = self.client._build_args('hello', _make_resolved(allow_all_tools=False))
+        assert '--dangerously-skip-permissions' not in args
+
 
 # ---------------------------------------------------------------------------
 # Command Builder — _build_stream_args
@@ -130,6 +140,14 @@ class TestBuildStreamArgs:
         assert args[5] == '--verbose'
         assert args[6] == '--model'
         assert args[-1] == '--extra'
+
+    def test_stream_allow_all_tools_flag_present_when_true(self):
+        args = self.client._build_stream_args('hello', _make_resolved(allow_all_tools=True))
+        assert '--dangerously-skip-permissions' in args
+
+    def test_stream_allow_all_tools_flag_absent_when_false(self):
+        args = self.client._build_stream_args('hello', _make_resolved(allow_all_tools=False))
+        assert '--dangerously-skip-permissions' not in args
 
 
 # ---------------------------------------------------------------------------

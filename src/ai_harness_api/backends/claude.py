@@ -63,6 +63,8 @@ class ClaudeClient(AiCliClient):
             args.append('--no-session-persistence')
         args.extend(['--output-format', 'json'])
         args.extend(['--model', options.model])
+        if options.allow_all_tools:
+            args.append('--dangerously-skip-permissions')
         args.extend(options.additional_args)
         return args
 
@@ -75,6 +77,8 @@ class ClaudeClient(AiCliClient):
         args.extend(['--output-format', 'stream-json'])
         args.append('--verbose')
         args.extend(['--model', options.model])
+        if options.allow_all_tools:
+            args.append('--dangerously-skip-permissions')
         args.extend(options.additional_args)
         return args
 

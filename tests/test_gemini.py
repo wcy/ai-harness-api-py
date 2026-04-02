@@ -20,6 +20,7 @@ def _make_resolved(
     additional_args: list[str] | None = None,
     session_id: str | None = None,
     persist_session: bool = False,
+    allow_all_tools: bool = False,
 ) -> ResolvedOptions:
     return ResolvedOptions(
         executable=executable,
@@ -29,6 +30,7 @@ def _make_resolved(
         additional_args=additional_args or [],
         session_id=session_id,
         persist_session=persist_session,
+        allow_all_tools=allow_all_tools,
     )
 
 
@@ -84,6 +86,22 @@ class TestBuildArgs:
         assert args[2] == '-o'
         assert args[3] == 'json'
         assert args[4] == '--model'
+
+    def test_allow_all_tools_true_adds_yolo(self):
+        args = self.client._build_args('hello', _make_resolved(allow_all_tools=True))
+        assert '--yolo' in args
+
+    def test_allow_all_tools_false_omits_yolo(self):
+        args = self.client._build_args('hello', _make_resolved(allow_all_tools=False))
+        assert '--yolo' not in args
+
+    def test_stream_allow_all_tools_true_adds_yolo(self):
+        args = self.client._build_stream_args('hello', _make_resolved(allow_all_tools=True))
+        assert '--yolo' in args
+
+    def test_stream_allow_all_tools_false_omits_yolo(self):
+        args = self.client._build_stream_args('hello', _make_resolved(allow_all_tools=False))
+        assert '--yolo' not in args
 
 
 # ---------------------------------------------------------------------------

@@ -239,6 +239,12 @@ class AiCliClient(ABC):
             or cfg.persist_session
         )
 
+        # Resolve allow_all_tools: call_options takes priority over cfg
+        allow_all_tools = (
+            (call_options.allow_all_tools if call_options else False)
+            or cfg.allow_all_tools
+        )
+
         return ResolvedOptions(
             executable=executable,
             model=model,
@@ -247,6 +253,7 @@ class AiCliClient(ABC):
             additional_args=additional_args,
             session_id=session_id,
             persist_session=persist_session,
+            allow_all_tools=allow_all_tools,
         )
 
     # ------------------------------------------------------------------
