@@ -66,19 +66,7 @@ gemini  = GeminiClient(ClientConfig(model="gemini-2.0-flash"))
 
 Default models: `ClaudeClient` → `haiku`, `CodexClient` → backend default, `GeminiClient` → backend default.
 
-### ClientConfig Fields
-
-Constructor-level configuration. All fields are optional.
-
-| Field | Type | Default | Description |
-|---|---|---|---|
-| `executable_path` | `str \| None` | PATH lookup | Override binary path |
-| `model` | `str \| None` | backend default | Model for all calls on this client |
-| `timeout` | `float \| None` | None (no timeout) | Default timeout in seconds |
-| `cwd` | `str \| None` | `os.getcwd()` | Default working directory |
-| `additional_args` | `list[str]` | `[]` | Extra CLI flags appended to every call |
-| `session_id` | `str \| None` | None | Session ID to resume on every call |
-| `persist_session` | `bool` | `False` | Start a new persistent session |
+/
 
 ### One-shot Execution
 
@@ -123,6 +111,7 @@ response = client.run_sync(
 | `additional_args` | `list[str]` | `[]` | Extra flags for this call only (concatenated with instance defaults) |
 | `session_id` | `str \| None` | None | Resume this session for this call only |
 | `persist_session` | `bool` | `False` | Start a new persistent session for this call only |
+| `allow_all_tools` | `bool` | `False` | Bypass all tool-approval prompts for this call only |
 
 ### Streaming
 
@@ -227,6 +216,7 @@ aicli claude --session-id <id> "Continue where we left off"
 | `--executable-path <path>` | string | PATH lookup | Override binary path |
 | `--new-session` | flag | false | Create a new persistent session |
 | `--session-id <id>` | string | none | Resume an existing session |
+| `--allow-all-tools` | flag | false | Bypass all tool-approval prompts; maps to `--dangerously-skip-permissions` (claude), `--yolo` (gemini), `--full-auto` (codex) |
 | `--output <format>` | `json\|jsonl\|text` | `json` | Output format |
 | `-h` / `--help` | flag | false | Print help and exit |
 
